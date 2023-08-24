@@ -5,6 +5,7 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,7 +13,9 @@ namespace FirstTestAutomation.Pages
 {
     public class TMPage
     {
-        public void CreateTimeRecord(IWebDriver driver, string code = "August2023")
+        public static string DeletedItemCode { get; set; }
+
+        public void CreateTimeRecord(IWebDriver driver, string code)
         {
             //Identify and click on create new button
             IWebElement createNewButton = driver.FindElement(By.XPath("//*[@id=\"container\"]/p/a"));
@@ -42,68 +45,73 @@ namespace FirstTestAutomation.Pages
 
             Wait.waitToBEClickable(driver, "XPath", "//*[@id=\"tmsGrid\"]/div[4]/a[4]", 5);
 
-            // Check if new new record was created
+            // Check if new record was created
             IWebElement goToLastPage = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[4]/a[4]"));
-            goToLastPage.Click();
-            
-            IWebElement newRecord = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]"));
-            
-            Assert.That(newRecord.Text == code, "New Time record has not been created");
-           
+            goToLastPage.Click();      
         }
-        public void EditTimeRecord(IWebDriver driver) 
-        {
-      
 
-            Thread.Sleep(2000);
+        public string GetNewRecordCode(IWebDriver driver)
+        {
+            IWebElement newRecordCode = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]"));
+            return newRecordCode.Text;
+        }
+
+        public void EditTimeRecord(IWebDriver driver, string code, string description, string price) 
+        {
+            IWebElement goToLastPage = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[4]/a[4]"));
+            goToLastPage.Click();  
+
             // Identify and click Edit button 
             IWebElement editButton = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[5]/a[1]"));
             editButton.Click();
 
             // Change the code
-            IWebElement edittextboxCode = driver.FindElement(By.Id("Code"));
-            edittextboxCode.Clear();
-            edittextboxCode.SendKeys("EditedAugust2023");
+            IWebElement editTextboxCode = driver.FindElement(By.Id("Code"));
+            editTextboxCode.Clear();
+            editTextboxCode.SendKeys(code);
 
             // change description
-            IWebElement edittextboxDescription = driver.FindElement(By.Id("Description"));
-            edittextboxDescription.Clear();
-            edittextboxDescription.SendKeys("EditedAugust2023");
+            IWebElement editTextboxDescription = driver.FindElement(By.Id("Description"));
+            editTextboxDescription.Clear();
+            editTextboxDescription.SendKeys(description);
 
             //Change price
             IWebElement overlapPriceTextbox = driver.FindElement(By.XPath("//*[@id=\"TimeMaterialEditForm\"]/div/div[4]/div/span[1]/span/input[1]"));
-            IWebElement editPricetextbox = driver.FindElement(By.Id("Price"));
+            IWebElement editPriceTextbox = driver.FindElement(By.Id("Price"));
             overlapPriceTextbox.Click();
-            editPricetextbox.Clear();
+            editPriceTextbox.Clear();
             overlapPriceTextbox.Click();
-            editPricetextbox.SendKeys("2023");
+            editPriceTextbox.SendKeys(price);
 
             // Save
             IWebElement editedsaveButton = driver.FindElement(By.Id("SaveButton"));
             editedsaveButton.Click();
 
-            Wait.waitIsVisible(driver, "XPath", "//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]", 5);
+            Wait.waitIsVisible(driver, "XPath", "//*[@id=\"tmsGrid\"]/div[4]/a[4]", 5);
 
-            // Check if the record was edited
-        
+            IWebElement goToLastPageAgain = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[4]/a[4]"));
+            goToLastPageAgain.Click();
+        }
+       
+        public Tuple<string, string, string> GetEditedRcords(IWebDriver driver) 
+        {
             IWebElement editedCodeRecord = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]"));
             IWebElement editedDescRecord = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[3]"));
             IWebElement editedPriceRecord = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[4]"));
-
-            Assert.That(editedCodeRecord.Text == "EditedAugust2023" &&
-                editedDescRecord.Text == "EditedAugust2023" &&
-                editedPriceRecord.Text == "$2,023.00",
-                "New Time record has not been edited");
-            
+            return new Tuple<string, string, string>(editedCodeRecord.Text, editedDescRecord.Text, editedPriceRecord.Text);
         }
+
+
         public void DeleteTimeRecord(IWebDriver driver)
         {
+            IWebElement goToLastPage = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[4]/a[4]"));
+            goToLastPage.Click();
+
             Wait.waitIsVisible(driver, "XPath", "//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]", 5);
 
-            //Check the Code of the last element 
+            //Check the Code of the last element
             IWebElement lastRecord = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]"));
-            string lastRecordText = lastRecord.Text;
-
+            
             // Click on Delete 
             IWebElement deleteButton = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[5]/a[2]"));
             deleteButton.Click();
@@ -111,12 +119,14 @@ namespace FirstTestAutomation.Pages
 
             var wait = new WebDriverWait(driver, new TimeSpan (0,0,5));
             wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.StalenessOf(lastRecord));
-
-            // check if the last record was deleted
-            IWebElement deleteLastRecord = driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]"));
-
-            Assert.That(deleteLastRecord.Text != lastRecordText, "The record wasn't deleted");
-            
         }
+
+        public string GetLastRecordText(IWebDriver driver)
+        {
+            Wait.waitIsVisible(driver, "XPath", "//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]", 5);
+            return driver.FindElement(By.XPath("//*[@id=\"tmsGrid\"]/div[3]/table/tbody/tr[last()]/td[1]")).Text;
+        }
+
+            
     }
 }

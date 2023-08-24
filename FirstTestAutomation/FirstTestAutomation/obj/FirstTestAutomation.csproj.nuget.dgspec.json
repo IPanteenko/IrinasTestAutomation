@@ -70,6 +70,18 @@
             "Selenium.WebDriver.ChromeDriver": {
               "target": "Package",
               "version": "[115.0.5790.17000, )"
+            },
+            "SpecFlow": {
+              "target": "Package",
+              "version": "[3.9.74, )"
+            },
+            "SpecFlow.NUnit": {
+              "target": "Package",
+              "version": "[3.9.74, )"
+            },
+            "SpecFlow.Tools.MsBuild.Generation": {
+              "target": "Package",
+              "version": "[3.9.74, )"
             }
           },
           "imports": [

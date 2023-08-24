@@ -13,6 +13,7 @@ using FirstTestAutomation.Utilities;
 namespace FirstTestAutomation.Tests
 {
     [TestFixture]
+    [Parallelizable]
     public class TM_tests : CommonDriver
     {
         [SetUp]
@@ -35,7 +36,7 @@ namespace FirstTestAutomation.Tests
         {
             // Time&material page initialization and definition
             TMPage tMPageObj = new TMPage();
-            tMPageObj.CreateTimeRecord(driver);
+            tMPageObj.CreateTimeRecord(driver, "August2023");
 
         }
 
@@ -43,7 +44,7 @@ namespace FirstTestAutomation.Tests
         public void EditTime_Test() 
         {
             TMPage tMPageObj = new TMPage();
-            tMPageObj.EditTimeRecord(driver);
+            tMPageObj.EditTimeRecord(driver, "something", "something2", "something3");
         }
 
         [Test]
@@ -51,7 +52,7 @@ namespace FirstTestAutomation.Tests
         {
             // Creating two records to make sure they have different codes for assertion
             TMPage tMPageObj = new TMPage();
-            tMPageObj.CreateTimeRecord(driver);
+            tMPageObj.CreateTimeRecord(driver, "August2023");
             tMPageObj.CreateTimeRecord(driver, "AnotherAugust2023"); 
             tMPageObj.DeleteTimeRecord(driver);
         }   
